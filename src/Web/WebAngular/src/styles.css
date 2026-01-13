@@ -1,0 +1,26 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* UK Number Plate Font */
+@font-face {
+  font-family: 'UKNumberPlate';
+  src: url('https://cdn.jsdelivr.net/gh/petemill/uk-number-plate-font@master/UKNumberPlate.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/gh/petemill/uk-number-plate-font@master/UKNumberPlate.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* UK Number Plate Styling */
+.uk-number-plate {
+  background-color: #ffd900;
+  border: 4px solid #000;
+  border-radius: 4px;
+  padding: 15px 10px;
+  margin: 15px;
+  font-family: 'UKNumberPlate', 'Charles Wright', Arial, sans-serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 8px;
+  color: #000;
+  text-shadow: 1px 1px 0px rgba(0,0,0,0.1);
+}

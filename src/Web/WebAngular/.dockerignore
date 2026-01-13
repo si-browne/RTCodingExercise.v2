@@ -1,0 +1,9 @@
+# WebAngular .dockerignore
+node_modules
+npm-debug.log
+.angular
+dist
+.git
+.gitignore
+README.md
+.vscode

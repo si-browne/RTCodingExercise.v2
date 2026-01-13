@@ -1,0 +1,234 @@
+<div class="container">
+  <h1 class="mb-4">Regtransfers Plate Shop</h1>
+
+  <!-- Alerts -->
+  <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
+    {{ success }}
+    <button type="button" class="btn-close" (click)="success = null"></button>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show">
+    {{ error }}
+    <button type="button" class="btn-close" (click)="error = null"></button>
+  </div>
+
+  <!-- Revenue Statistics Dashboard (User Story 6) -->
+  <div *ngIf="statistics" class="row mb-4">
+    <!-- Statistics Cards Column -->
+    <div class="col-md-4">
+      <div class="row g-3">
+        <div class="col-12">
+          <div class="card bg-primary text-white">
+            <div class="card-body">
+              <h5 class="card-title">Total Revenue</h5>
+              <p class="card-text display-6">£{{ statistics.totalRevenue | number:'1.2-2' }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card bg-success text-white">
+            <div class="card-body">
+              <h5 class="card-title">Total Profit</h5>
+              <p class="card-text display-6">£{{ statistics.totalProfit | number:'1.2-2' }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card bg-info text-white">
+            <div class="card-body">
+              <h5 class="card-title">Plates Sold</h5>
+              <p class="card-text display-6">{{ statistics.platesSold }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card bg-warning text-dark">
+            <div class="card-body">
+              <h5 class="card-title">Avg Profit Margin</h5>
+              <p class="card-text display-6">{{ statistics.averageProfitMargin | percent:'1.2-2' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profit Margin Chart Column (User Story 6 Advanced) -->
+    <div class="col-md-8" *ngIf="statistics.platesSold > 0">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="mb-0">Profit Margin Analytics</h5>
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+          <canvas id="profitMarginChart" style="max-width: 400px; max-height: 400px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Form (User Stories 2-5) -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form (ngSubmit)="onSearch()">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label for="search" class="form-label">Search Registration</label>
+            <input type="text" class="form-control" id="search" [(ngModel)]="searchText" name="search" placeholder="e.g., AB12">
+          </div>
+          <div class="col-md-2">
+            <label for="letters" class="form-label">Letters</label>
+            <input type="text" class="form-control" id="letters" [(ngModel)]="lettersFilter" name="letters" placeholder="e.g., ABC">
+          </div>
+          <div class="col-md-2">
+            <label for="numbers" class="form-label">Numbers</label>
+            <input type="number" class="form-control" id="numbers" [(ngModel)]="numbersFilter" name="numbers" placeholder="e.g., 123">
+          </div>
+          <div class="col-md-2">
+            <label for="status" class="form-label">Status</label>
+            <select class="form-select" id="status" [(ngModel)]="statusFilter" name="status">
+              <option [value]="PlateStatus.ForSale">For Sale</option>
+              <option [value]="PlateStatus.Reserved">Reserved</option>
+              <option [value]="PlateStatus.Sold">Sold</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="sortBy" class="form-label">Sort By</label>
+            <select class="form-select" id="sortBy" [(ngModel)]="sortBy" name="sortBy">
+              <option value="">Default</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="registration_asc">Registration: A-Z</option>
+              <option value="registration_desc">Registration: Z-A</option>
+            </select>
+          </div>
+          <div class="col-md-1 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Plates Grid (User Stories 1-5) -->
+  <div *ngIf="!loading && plates.length > 0" class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4 mb-4">
+    <div *ngFor="let plate of plates" class="col">
+      <div class="card h-100">
+        <!-- UK-style number plate design -->
+        <div class="card-body text-center p-0">
+          <div class="uk-number-plate">
+            {{ formatRegistration(plate.registration) }}
+          </div>
+        </div>
+        <div class="card-body">
+          <p class="mb-1"><strong>Sale Price:</strong> £{{ plate.salePrice | number:'1.2-2' }}</p>
+          <p class="mb-1">
+            <strong>Status:</strong> 
+            <span class="badge" [ngClass]="getStatusBadgeClass(plate.status)">
+              {{ getStatusText(plate.status) }}
+            </span>
+          </p>
+
+          <!-- For Sale Actions -->
+          <div *ngIf="plate.status === PlateStatus.ForSale">
+            <button class="btn btn-sm btn-primary w-100 mt-2 mb-1" (click)="reservePlate(plate)">
+              Reserve
+            </button>
+            <button class="btn btn-sm btn-success w-100" (click)="openSellModal(plate)">
+              Sell
+            </button>
+          </div>
+
+          <!-- Reserved Actions -->
+          <div *ngIf="plate.status === PlateStatus.Reserved" class="mt-2">
+            <button class="btn btn-sm btn-secondary w-100 mb-1" (click)="unreservePlate(plate)">
+              Unreserve
+            </button>
+            <button class="btn btn-sm btn-success w-100" (click)="openSellModal(plate)">
+              Sell
+            </button>
+          </div>
+
+          <!-- Sold Info -->
+          <div *ngIf="plate.status === PlateStatus.Sold">
+            <p class="mb-1 mt-2"><small><strong>Sold Price:</strong> £{{ plate.soldPrice | number:'1.2-2' }}</small></p>
+            <p *ngIf="plate.promoCodeUsed" class="mb-1"><small><strong>Promo:</strong> {{ plate.promoCodeUsed }}</small></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Data -->
+  <div *ngIf="!loading && plates.length === 0" class="alert alert-info">
+    <p class="mb-0">No plates found matching your criteria.</p>
+  </div>
+
+  <!-- Pagination (User Story 3 - 20 per page) -->
+  <nav *ngIf="!loading && totalPages > 1">
+    <ul class="pagination justify-content-center">
+      <li class="page-item" [class.disabled]="!hasPreviousPage">
+        <button class="page-link" (click)="onPageChange(currentPage - 1)" [disabled]="!hasPreviousPage">
+          Previous
+        </button>
+      </li>
+
+      <li *ngFor="let page of getPages()" class="page-item" [class.active]="page === currentPage">
+        <button class="page-link" (click)="onPageChange(page)">{{ page }}</button>
+      </li>
+
+      <li class="page-item" [class.disabled]="!hasNextPage">
+        <button class="page-link" (click)="onPageChange(currentPage + 1)" [disabled]="!hasNextPage">
+          Next
+        </button>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+<!-- Sell Modal (User Story 7 - Promo Code Calculator) -->
+<div class="modal" [class.show]="showSellModal" [style.display]="showSellModal ? 'block' : 'none'" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content" *ngIf="selectedPlate">
+      <div class="modal-header">
+        <h5 class="modal-title">Sell Plate</h5>
+        <button type="button" class="btn-close" (click)="closeSellModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label"><strong>Registration:</strong></label>
+          <p>{{ selectedPlate.registration }}</p>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label"><strong>Original Price:</strong></label>
+          <p>£{{ selectedPlate.salePrice | number:'1.2-2' }}</p>
+        </div>
+        
+        <div class="mb-3">
+          <label for="promoCode" class="form-label">Promo Code (Optional)</label>
+          <select class="form-select" id="promoCode" [(ngModel)]="selectedPromoCode" (change)="onPromoCodeChange()">
+            <option value="">No Discount</option>
+            <option value="DISCOUNT">DISCOUNT (£25 off)</option>
+            <option value="PERCENTOFF">PERCENTOFF (15% off)</option>
+          </select>
+        </div>
+        
+        <div class="alert alert-info">
+          <strong>Final Price:</strong> £{{ calculatedPrice | number:'1.2-2' }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeSellModal()">Cancel</button>
+        <button type="button" class="btn btn-success" (click)="confirmSale()">Confirm Sale</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop" [class.show]="showSellModal" *ngIf="showSellModal"></div>
+

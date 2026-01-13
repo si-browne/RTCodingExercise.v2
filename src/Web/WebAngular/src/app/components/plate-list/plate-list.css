@@ -1,0 +1,36 @@
+/* UK-style plate design */
+.uk-plate {
+  background-color: #FFD700;
+  border: 3px solid black;
+  padding: 20px;
+  font-family: 'Charles Wright', monospace;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: black;
+}
+
+/* Badge colors */
+.badge-success {
+  background-color: #28a745;
+  color: white;
+}
+
+.badge-warning {
+  background-color: #ffc107;
+  color: black;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Modal styling */
+.modal.show {
+  display: block;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-backdrop.show {
+  opacity: 0.5;
+}

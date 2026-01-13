@@ -1,0 +1,33 @@
+version: '3.4'
+
+services:
+  webmvc:
+    image: regtansfers/rtcodingexercise-webmvc
+    build:
+      context: .
+      dockerfile: src/Web/WebMVC/Dockerfile
+    depends_on:
+      - sqldata
+      - catalog-api
+
+  webangular:
+    image: regtansfers/rtcodingexercise-webangular
+    build:
+      context: src/Web/WebAngular
+      dockerfile: Dockerfile
+    depends_on:
+      - catalog-api
+
+  catalog-api:
+    image: regtansfers/rtcodingexercise-catalogapi
+    build:
+      context: .
+      dockerfile: src/Services/Catalog/Catalog.API/Dockerfile
+    depends_on:
+      - sqldata
+
+  sqldata:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
