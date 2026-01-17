@@ -1,4 +1,4 @@
-﻿@model RTCodingExercise.Microservices.Models.PagedResult<RTCodingExercise.Microservices.Models.Plate>
+@model RTCodingExercise.Microservices.Models.PagedResult<RTCodingExercise.Microservices.Models.Plate>
 
 @{
     ViewData["Title"] = "Regtransfers Plate Shop";
@@ -179,6 +179,13 @@
                                         data-plate-price="@plate.SalePrice">
                                     Sell
                                 </button>
+                                <div class="mt-2">
+                                    <a class="btn btn-sm btn-outline-dark w-100 mb-1"
+                                       asp-action="Audit"
+                                       asp-route-id="@plate.Id">
+                                        Audit Log
+                                    </a>
+                                </div>
                             </div>
                         }
                         else if (plate.Status == RTCodingExercise.Microservices.Models.PlateStatus.Reserved)
@@ -195,6 +202,13 @@
                                         data-plate-price="@plate.SalePrice">
                                     Sell
                                 </button>
+                                <div class="mt-2">
+                                    <a class="btn btn-sm btn-outline-dark w-100 mb-1"
+                                       asp-action="Audit"
+                                       asp-route-id="@plate.Id">
+                                        Audit Log
+                                    </a>
+                                </div>
                             </div>
                         }
                         else
@@ -203,6 +217,13 @@
                             @if (!string.IsNullOrEmpty(plate.PromoCodeUsed))
                             {
                                 <p class="mb-1"><small><strong>Promo:</strong> @plate.PromoCodeUsed</small></p>
+                                <div class="mt-2">
+                                    <a class="btn btn-sm btn-outline-dark w-100 mb-1"
+                                       asp-action="Audit"
+                                       asp-route-id="@plate.Id">
+                                        Audit Log
+                                    </a>
+                                </div>
                             }
                         }
                     </div>

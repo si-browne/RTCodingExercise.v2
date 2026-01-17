@@ -22,6 +22,64 @@ namespace Catalog.API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Catalog.Domain.AuditLogEvent", b =>
+                {
+                    b.Property<Guid>("AuditLogEventId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PlateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("AuditLogEventId");
+
+                    b.HasIndex("PlateId");
+
+                    b.HasIndex("Timestamp");
+
+                    b.HasIndex("PlateId", "Timestamp");
+
+                    b.ToTable("AUDIT_LOG_EVENT", (string)null);
+                });
+
+            modelBuilder.Entity("Catalog.Domain.AuditLogEventChange", b =>
+                {
+                    b.Property<Guid>("AuditLogEventChangeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AuditLogEventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("NewValue")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.Property<string>("OldValue")
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.HasKey("AuditLogEventChangeId");
+
+                    b.HasIndex("AuditLogEventId");
+
+                    b.ToTable("AUDIT_LOG_EVENT_CHANGE", (string)null);
+                });
+
             modelBuilder.Entity("Catalog.Domain.Plate", b =>
                 {
                     b.Property<Guid>("Id")
@@ -78,6 +136,22 @@ namespace Catalog.API.Migrations
                     b.HasIndex("Status", "SalePrice");
 
                     b.ToTable("Plates");
+                });
+
+            modelBuilder.Entity("Catalog.Domain.AuditLogEventChange", b =>
+                {
+                    b.HasOne("Catalog.Domain.AuditLogEvent", "AuditLogEvent")
+                        .WithMany("Changes")
+                        .HasForeignKey("AuditLogEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AuditLogEvent");
+                });
+
+            modelBuilder.Entity("Catalog.Domain.AuditLogEvent", b =>
+                {
+                    b.Navigation("Changes");
                 });
 #pragma warning restore 612, 618
         }

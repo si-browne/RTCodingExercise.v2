@@ -1,0 +1,104 @@
+@model List<RTCodingExercise.Microservices.Models.AuditLogEvent>
+
+@{
+    ViewData["Title"] = "Audit History";
+    var plateId = (Guid)ViewBag.PlateId;
+    DateTime? fromUtc = ViewBag.FromUtc as DateTime?;
+    DateTime? toUtc = ViewBag.ToUtc as DateTime?;
+}
+
+<h2 class="mb-3">Audit History</h2>
+<p class="text-muted mb-4">PlateId: <code>@plateId</code></p>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Audit">
+            <input type="hidden" name="id" value="@plateId" />
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">From (UTC)</label>
+                    <input class="form-control" type="datetime-local" name="fromUtc"
+                           value="@(fromUtc.HasValue? fromUtc.Value.ToString("yyyy-MM-ddTHH:mm") : "")" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">To (UTC)</label>
+                    <input class="form-control" type="datetime-local" name="toUtc"
+                           value="@(toUtc.HasValue? toUtc.Value.ToString("yyyy-MM-ddTHH:mm") : "")" />
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button class="btn btn-primary" type="submit">Filter</button>
+
+                    @{
+                        var from = fromUtc ?? DateTime.UtcNow.AddDays(-7);
+                        var to = toUtc ?? DateTime.UtcNow;
+                    }
+
+                    <a class="btn btn-outline-secondary"
+                       asp-action="ExportAudit"
+                       asp-route-fromUtc="@from.ToString("O")"
+                       asp-route-toUtc="@to.ToString("O")"
+                       asp-route-format="csv"
+                       asp-route-plateId="@plateId">
+                        Export CSV
+                    </a>
+
+                    <a class="btn btn-outline-secondary"
+                       asp-action="ExportAudit"
+                       asp-route-fromUtc="@from.ToString("O")"
+                       asp-route-toUtc="@to.ToString("O")"
+                       asp-route-format="json"
+                       asp-route-plateId="@plateId">
+                        Export JSON
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model == null || Model.Count == 0)
+{
+    <div class="alert alert-info">No audit entries found for this plate.</div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var e in Model.OrderBy(x => x.Timestamp))
+        {
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <strong>@e.Status</strong>
+                        <div class="text-muted small">User: <code>@e.UserId</code></div>
+                    </div>
+                    <div class="text-muted small">@e.Timestamp.ToString("O")</div>
+                </div>
+
+                @if (e.Changes != null && e.Changes.Count > 0)
+                {
+                    <div class="mt-2">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Old</th>
+                                    <th>New</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var c in e.Changes.OrderBy(c => c.FieldName))
+                                {
+                                    <tr>
+                                        <td><code>@c.FieldName</code></td>
+                                        <td>@(c.OldValue ?? "<null>")</td>
+                                        <td>@(c.NewValue ?? "<null>")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

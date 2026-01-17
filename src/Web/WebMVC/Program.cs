@@ -36,6 +36,8 @@ try
     builder.Services.AddHttpClient("CatalogApi", client =>
     {
         client.BaseAddress = new Uri(builder.Configuration["CatalogApiUrl"] ?? "http://localhost:5101");
+        // NEW: demo "admin" user id for auditing using defined header
+        client.DefaultRequestHeaders.Add("X-User-Id", "11111111-1111-1111-1111-111111111111");
     });
 
     builder.Services.AddMassTransit(x =>

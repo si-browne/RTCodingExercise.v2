@@ -1,3 +1,4 @@
+using Catalog.API.Auditing;
 using MassTransit;
 using RabbitMQ.Client;
 
@@ -26,13 +27,15 @@ try
         .ReadFrom.Configuration(context.Configuration));
 
     // Add services to the container
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlServer(builder.Configuration["ConnectionString"],
-        sqlServerOptionsAction: sqlOptions =>
-        {
-            sqlOptions.MigrationsAssembly(typeof(Program).Assembly.GetName().Name);
-            sqlOptions.EnableRetryOnFailure(maxRetryCount: 15, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
-        }));
+    builder.Services.AddDbContext<ApplicationDbContext>((sp, options) => options.UseSqlServer(builder.Configuration["ConnectionString"], sqlServerOptionsAction: sqlOptions =>
+    {
+        sqlOptions.MigrationsAssembly(typeof(Program).Assembly.GetName().Name);
+        sqlOptions.EnableRetryOnFailure(maxRetryCount: 15, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
+    })
+        // NEW  
+        // core lib EF interceptor for auditing
+        .AddInterceptors(sp.GetRequiredService<PlateAuditInterceptor>())
+    );
 
     // Register Repository and Service layers (Repository + Service Pattern)
     builder.Services.AddScoped<IPlateRepository, PlateRepository>();
@@ -41,6 +44,11 @@ try
 
     builder.Services.AddExceptionHandler<Catalog.API.Middleware.GlobalExceptionHandler>();
     builder.Services.AddProblemDetails();
+
+    // NEW
+    builder.Services.AddHttpContextAccessor(); // required to detect headers etc
+    builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>(); // user service to detect userId etc
+    builder.Services.AddSingleton<PlateAuditInterceptor>(); // interceptor pattern
 
     builder.Services.AddSwaggerGen(options =>
     {
@@ -86,6 +94,8 @@ try
 
     builder.Services.AddMassTransit(x =>
     {
+        x.AddConsumer<AuditWorkItemConsumer>();
+
         x.UsingRabbitMq((context, cfg) =>
         {
             var eventBusConnection = builder.Configuration["EventBusConnection"] ?? "localhost";
